@@ -36,15 +36,7 @@
    (action
     (progn
      (copy %{dep:../../index.html} index.html)
-     (copy %{dep:../../index.css} index.css)))))
- (rule
-  (targets .env farm.config.ts postcss.config.mjs tailwind.config.js)
-  (action
-   (progn
-    (copy %{dep:../../.env} .env)
-    (copy %{dep:../../farm.config.ts} farm.config.ts)
-    (copy %{dep:../../postcss.config.mjs} postcss.config.mjs)
-    (copy %{dep:../../tailwind.config.js} tailwind.config.js)))))
+     (copy %{dep:../../index.css} index.css))))))
 
 (rule
  (targets dist)
@@ -54,11 +46,7 @@
  (deps
   (alias melange)
   (file output/frontend/index.css)
-  (file output/frontend/index.html)
-  (file output/.env)
-  (file output/farm.config.ts)
-  (file output/postcss.config.mjs)
-  (file output/tailwind.config.js))
+  (file output/frontend/index.html))
  (action
   (chdir
    output
@@ -72,11 +60,7 @@
  (deps
   (alias melange)
   (file output/frontend/index.css)
-  (file output/frontend/index.html)
-  (file output/.env)
-  (file output/farm.config.ts)
-  (file output/postcss.config.mjs)
-  (file output/tailwind.config.js))
+  (file output/frontend/index.html))
  (action
   (chdir
    output
