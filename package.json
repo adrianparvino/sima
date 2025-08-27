@@ -30,6 +30,7 @@
   },
   "scripts": {
     "dune": "dune",
+    "dune:passive": "dune build --passive-watch-mode",
     "dev": "wrangler dev --live-reload --test-scheduled",
     "deploy": "wrangler deploy -e production"
   }
