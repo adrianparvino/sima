@@ -32,57 +32,6 @@ module RTF = {
   [@mel.send] external format: (t, float, string) => string = "format";
 };
 
-module TaskInput = {
-  [@react.component]
-  let make = (~onSubmit: (~name: string, ~deadline: string) => unit) => {
-    let (name, setName) = React.useReducer((_, newValue) => newValue, "");
-    let (deadline, setDeadline) =
-      React.useReducer((_, newValue) => newValue, "");
-
-    <form
-      onSubmit={event => {
-        React.Event.Form.preventDefault(event);
-        onSubmit(~name, ~deadline);
-      }}
-      className={
-        "bg-white p-4 drop-shadow grid transition-[grid-template-rows]"
-        ++ (
-          if (name == "") {
-            " grid-rows-[min-content_0fr]";
-          } else {
-            " grid-rows-[min-content_1fr]";
-          }
-        )
-      }>
-      <input
-        placeholder="Task Title"
-        value=name
-        onChange={event => React.Event.Form.target(event)##value |> setName}
-      />
-      <div className="overflow-hidden">
-        <div className="flex flex-row content-center mt-4 ">
-          <div className="my-auto">
-            {React.string("Deadline")}
-            <input
-              className="ml-2"
-              type_="date"
-              value=deadline
-              onChange={event =>
-                React.Event.Form.target(event)##value |> setDeadline
-              }
-            />
-          </div>
-          <button
-            className="block ml-auto bg-primary p-2 font-bold text-white w-24"
-            type_="submit">
-            {React.string("Create")}
-          </button>
-        </div>
-      </div>
-    </form>;
-  };
-};
-
 module Tasks = {
   open Melange_json.Primitives;
 
