@@ -23,7 +23,7 @@ command = "dune build @@default @ocaml-index --ignore-lock-dir"
 watch_dir = ["bin", "frontend", ".env"]
 
 [vars]
-GOOGLE_CLIENT_ID = "528954406212-vvee6ekgfilrbvh5udcgsbh1i57jnjrg.apps.googleusercontent.com "
+GOOGLE_CLIENT_ID = "528954406212-vvee6ekgfilrbvh5udcgsbh1i57jnjrg.apps.googleusercontent.com"
 
 [[d1_databases]]
 binding = "DB"
