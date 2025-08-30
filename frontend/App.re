@@ -65,10 +65,10 @@ module Tasks = {
           {
             task_id,
             name,
-            deadline: deadline ++ "T00:00:00+08:00" |> Js.Date.fromString,
+            deadline: deadline ++ "T00:00:00" |> Js.Date.fromString,
             finished_at:
               finished_at
-              |> Option.map(x => x ++ "T00:00:00+08:00" |> Js.Date.fromString),
+              |> Option.map(x => x ++ "T00:00:00" |> Js.Date.fromString),
           }
         )
       );
