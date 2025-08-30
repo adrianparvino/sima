@@ -3,9 +3,9 @@ type encodeIntoResult = { read : int; written : int }
 
 external make : unit -> t = "TextEncoder" [@@mel.new]
 
-external encode : (t [@mel.this]) -> string -> Js.Typed_array.Uint8Array.t = "encode"
+external encode : string -> (t [@mel.this]) -> Js.Typed_array.Uint8Array.t = "encode"
 [@@mel.send]
 
-external encodeInto : (t [@mel.this]) -> string -> Js.Typed_array.Uint8Array.t -> encodeIntoResult
+external encodeInto : string -> (t [@mel.this]) -> Js.Typed_array.Uint8Array.t -> encodeIntoResult
   = "encodeInto"
 [@@mel.send]
