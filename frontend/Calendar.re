@@ -1,69 +1,90 @@
-let monthToString = month => {
-  switch (month) {
-  | 0 => "January"
-  | 1 => "February"
-  | 2 => "March"
-  | 3 => "April"
-  | 4 => "May"
-  | 5 => "June"
-  | 6 => "July"
-  | 7 => "August"
-  | 8 => "September"
-  | 9 => "October"
-  | 10 => "November"
-  | 11 => "December"
-  | _ => ""
+module TaskEntry = {
+  open Tasks;
+
+  [@react.component]
+  let make = (~task: Tasks.task) => {
+    let classNames = [|"p-2"|];
+    if (task.finished_at->Belt.Option.isSome) {
+      let _ =
+        classNames->Js.Array.pushMany(
+          ~values=[|"line-through", "text-gray-500", "italic"|],
+        );
+      ();
+    };
+    let className = Js.Array.join(~sep=" ", classNames);
+    <div className> {React.string(task.name)} </div>;
   };
 };
 
 [@react.component]
-let make = () => {
-  let today = Js.Date.make();
+let make = (~tasks: option(Tasks.t)) => {
+  let (date, setDate) =
+    React.useReducer(
+      (_, (event, newValue)) => {
+        let target = React.Event.Mouse.target(event);
+        let offsetTop = target##offsetTop;
+        Js.Console.log(offsetTop);
+        newValue;
+      },
+      Js.Date.make(),
+    );
 
-  let startingDayOfMonth =
-    Js.Date.makeWithYMD(
-      ~year=Js.Date.getFullYear(today),
-      ~month=Js.Date.getMonth(today),
-      ~date=1.0,
-    )
-    |> Js.Date.getDay
-    |> Int.of_float;
+  let tasksMap =
+    React.useMemo1(
+      () => {
+        let map = Js.Map.make();
+        tasks
+        ->Belt.Option.getWithDefault([||])
+        ->Belt.Array.forEach(
+            Tasks.(
+              task => {
+                let timestamp = Js.Date.getTime(task.deadline);
 
-  let lastDay =
-    Js.Date.makeWithYMD(
-      ~year=Js.Date.getFullYear(today),
-      ~month=Js.Date.getMonth(today) +. 1.0,
-      ~date=0.0,
-    )
-    |> Js.Date.getDate
-    |> Int.of_float;
+                switch (Js.Map.get(~key=timestamp, map)) {
+                | None =>
+                  map->Js.Map.set(~key=timestamp, ~value=[|task|])->ignore
+                | Some(arr) => arr->Js.Array.push(~value=task)->ignore
+                };
+              }
+            ),
+          );
+        map;
+      },
+      [|tasks|],
+    );
 
-  <div>
-    <div className="text-center">
-      {today
-       |> Js.Date.getMonth
-       |> Int.of_float
-       |> monthToString
-       |> React.string}
-      {React.string(" ")}
-      {today |> Js.Date.getFullYear |> Int.of_float |> React.int}
+  let selectedTasks =
+    React.useMemo2(
+      () => {tasksMap->Js.Map.get(~key=Js.Date.getTime(date))},
+      (tasksMap, date),
+    );
+
+  <div className="relative mx-auto">
+    <ReactCalendar
+    calendarType=ReactCalendar.Gregory
+      value=date
+      tileClassName={params =>
+        if (tasksMap->Js.Map.has(~key=Js.Date.getTime(params.date))) {
+          [|"underline"|];
+        } else {
+          [||];
+        }
+      }
+      onChange={(value, event) => setDate((event, value))}
+    />
+    <div
+      className="text-xl font-bold text-center bg-white border-b border-x border-[#a0a096] p-2">
+      {React.string("Events")}
     </div>
-    <div className="grid grid-cols-7 text-center">
-      <span> {React.string("S")} </span>
-      <span> {React.string("M")} </span>
-      <span> {React.string("T")} </span>
-      <span> {React.string("W")} </span>
-      <span> {React.string("T")} </span>
-      <span> {React.string("F")} </span>
-      <span> {React.string("S")} </span>
-    </div>
-    <div className="grid grid-cols-7 text-center">
-      {Array.init(startingDayOfMonth, i => <span key={i |> Int.to_string} />)
-       |> React.array}
-      {Array.init(lastDay, i =>
-         <span key={i |> Int.to_string}> {React.int(i + 1)} </span>
-       )
-       |> React.array}
-    </div>
+    {switch (selectedTasks) {
+     | Some(selectedTasks) =>
+       <div className="bg-white border-b border-x border-[#a0a096]">
+         {selectedTasks
+          ->Belt.Array.map(task => <TaskEntry task />)
+          ->React.array}
+       </div>
+
+     | None => React.null
+     }}
   </div>;
 };

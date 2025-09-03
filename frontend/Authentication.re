@@ -1,5 +1,5 @@
 module Provider = {
-  let themeContext = React.createContext("");
+  let themeContext = React.createContext("a");
 
   include React.Context;
   let make = React.Context.provider(themeContext);

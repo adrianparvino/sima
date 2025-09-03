@@ -11,7 +11,8 @@
  ; Dune will look into those dependencies and generate rules with JavaScript targets
  ; for the modules in those libraries as well.
  ; Caveat: the libraries need to be specified with `(modes melange)`.
- (libraries reason-react melange.belt melange-fetch melange-json)
+ (libraries reason-react melange.belt melange.dom melange-fetch
+  melange-webapi melange-json)
  ; By default, Dune will include all modules in the folder to the targets. With `modules` field
  ; we can tweak this default behavior by excluding `hello` from the list of targets of this stanza.
  ; See https://dune.readthedocs.io/en/stable/reference/predicate-language.html#predicate-language
@@ -38,13 +39,12 @@
      (copy %{dep:../../index.html} index.html)
      (copy %{dep:../../index.css} index.css)))))
  (rule
-  (targets .env farm.config.ts postcss.config.mjs tailwind.config.js)
+  (targets .env farm.config.ts postcss.config.mjs)
   (action
    (progn
     (copy %{dep:../../.env} .env)
     (copy %{dep:../../farm.config.ts} farm.config.ts)
-    (copy %{dep:../../postcss.config.mjs} postcss.config.mjs)
-    (copy %{dep:../../tailwind.config.js} tailwind.config.js)))))
+    (copy %{dep:../../postcss.config.mjs} postcss.config.mjs)))))
 
 (rule
  (targets dist)
@@ -57,8 +57,7 @@
   (file output/frontend/index.html)
   (file output/.env)
   (file output/farm.config.ts)
-  (file output/postcss.config.mjs)
-  (file output/tailwind.config.js))
+  (file output/postcss.config.mjs))
  (action
   (chdir
    output
@@ -75,8 +74,7 @@
   (file output/frontend/index.html)
   (file output/.env)
   (file output/farm.config.ts)
-  (file output/postcss.config.mjs)
-  (file output/tailwind.config.js))
+  (file output/postcss.config.mjs))
  (action
   (chdir
    output
