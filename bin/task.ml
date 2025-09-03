@@ -59,11 +59,12 @@ module Repository = struct
     let prepared_statement =
       d1
       |. prepare
-           {|INSERT INTO Progress (task_id, email, finished_at) VALUES (?, ?, STRFTIME("%F", "now"))|}
+           {|INSERT INTO Progress (task_id, email, finished_at) VALUES (?, ?, ?)|}
     in
+    let date = Sima_common.Temporal.Now.PlainDateIso.(make("Asia/Manila")|>toString) in
     let bound_prepared_statement =
       prepared_statement
-      |. bind Bind.[| number @@ int_of_string task_id; string email |]
+      |. bind Bind.[| number @@ int_of_string task_id; string email; string date |]
     in
     bound_prepared_statement |. run
 end
