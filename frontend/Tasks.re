@@ -57,7 +57,7 @@
          let days =
            (relativeTime +. 86400000.)
            /. 86400000.
-           |> Js.Math.round
+           |> Js.Math.floor_float
            |> Int.of_float;
          let relative =
            RTF.makeWithLocaleAndOptions(
