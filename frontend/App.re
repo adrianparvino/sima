@@ -1,5 +1,3 @@
-[%%mel.raw {|import "react-calendar/dist/Calendar.css"|}];
-
 [@mel.scope ("import", "meta", "env")]
 external backendUrl: string = "VITE_BACKEND_URL";
 
