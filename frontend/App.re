@@ -106,6 +106,8 @@ module MainApp = {
     let (tasks, setTasks) =
       React.useReducer((_, newValue) => Some(newValue), None);
 
+    Js.Console.log(tasks);
+
     let fetchTasks = () =>
       if (credential != "") {
         Js.Promise.(
@@ -191,7 +193,7 @@ module MainApp = {
 
 [@react.component]
 let make = () => {
-    <GoogleOAuthProvider clientId=googleClientId>
-      <Authentication> <MainApp /> </Authentication>
-    </GoogleOAuthProvider>;
+  <GoogleOAuthProvider clientId=googleClientId>
+    <Authentication> <MainApp /> </Authentication>
+  </GoogleOAuthProvider>;
 };

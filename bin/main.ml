@@ -42,24 +42,9 @@ module Worker = Cf_workers.Workers.Make (struct
     let+ scores = Score.list d1 in
     ControllerResponse.Scores scores
 
-  let handle_ headers env url req =
+  let handle_ verified _headers env url req =
     let open Cf_workers.Promise_utils.Bind in
     let open Cf_workers.Workers.Request in
-    let bearer =
-      headers
-      |> Cf_workers.Headers.get "authorization"
-      |> Option.get |> Js.String.split ~sep:" "
-      |> function
-      | [| "Bearer"; token |] -> token
-      | _ -> failwith "Invalid authorization header"
-    in
-    let google_client_id = Cf_workers.Workers.Env.get env "GOOGLE_CLIENT_ID" |> Option.get in
-    let* jwk = Fetch.fetch "https://www.googleapis.com/oauth2/v3/certs" in
-    let* jwk = jwk |> Fetch.Response.json in
-    let jwk = jwk |> Verify.response_of_json in
-    let* verified =
-      Jwt.verify bearer jwk.keys [%mel.obj { hd = "up.edu.ph"; aud = google_client_id }]
-    in
     let path =
       (URL.make url).pathname
       |> Js.String.match_ ~regexp:[%re "/\\/([^/]+)/g"]
@@ -83,6 +68,28 @@ module Worker = Cf_workers.Workers.Make (struct
         let task_id = task_id |> Js.String.slice ~start:1 in
         Task.Controller.finish env email task_id
     | _ -> failwith "Invalid path"
+
+  let handle_ headers env url req =
+    let open Cf_workers.Promise_utils.Bind in
+    let bearer =
+      headers
+      |> Cf_workers.Headers.get "authorization"
+      |> Option.get |> Js.String.split ~sep:" "
+      |> function
+      | [| "Bearer"; token |] -> token
+      | _ -> failwith "Invalid authorization header"
+    in
+    let google_client_id =
+      Cf_workers.Workers.Env.get env "GOOGLE_CLIENT_ID" |> Option.get
+    in
+    let* jwk = Fetch.fetch "https://www.googleapis.com/oauth2/v3/certs" in
+    let* jwk = jwk |> Fetch.Response.json in
+    let jwk = jwk |> Verify.response_of_json in
+    let* verified =
+      Jwt.verify bearer jwk.keys
+        [%mel.obj { hd = "up.edu.ph"; aud = google_client_id }]
+    in
+    handle_ verified headers env url req
 
   let handle headers env url req =
     let open Cf_workers.Promise_utils.Bind in

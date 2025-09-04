@@ -12,7 +12,7 @@
  ; for the modules in those libraries as well.
  ; Caveat: the libraries need to be specified with `(modes melange)`.
  (libraries reason-react melange.belt melange.dom melange-fetch
-  melange-webapi melange-json)
+  melange-webapi melange-json sima_common)
  ; By default, Dune will include all modules in the folder to the targets. With `modules` field
  ; we can tweak this default behavior by excluding `hello` from the list of targets of this stanza.
  ; See https://dune.readthedocs.io/en/stable/reference/predicate-language.html#predicate-language

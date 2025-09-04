@@ -61,7 +61,7 @@ let make = (~tasks: option(Tasks.t)) => {
 
   <div className="relative mx-auto">
     <ReactCalendar
-    calendarType=ReactCalendar.Gregory
+      calendarType=ReactCalendar.Gregory
       value=date
       tileClassName={params =>
         if (tasksMap->Js.Map.has(~key=Js.Date.getTime(params.date))) {
