@@ -39,7 +39,7 @@ module Repository = struct
       |. prepare
            {|INSERT INTO tasks (name, deadline, ext_id) VALUES (?, ?, ?)
            ON CONFLICT (ext_id) DO UPDATE SET name = excluded.name, deadline = excluded.deadline
-           WHERE deadline <> excluded.deadline|}
+           WHERE name <> excluded.name OR deadline <> excluded.deadline|}
     in
     let bound_prepared_statements =
       tasks
