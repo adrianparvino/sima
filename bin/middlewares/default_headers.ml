@@ -1,0 +1,14 @@
+module Make (Handler : Cf_workers.Workers.Handler) = struct
+  let default_headers _env =
+    let headers = Cf_workers.Headers.empty () in
+    headers
+
+  let handle ctx headers env url req =
+    let open Cf_workers.Workers.Request in
+    match req with
+    | Options ->
+        ""
+        |> Cf_workers.Workers.Response.create ~headers:(default_headers env)
+        |> Js.Promise.resolve
+    | _ -> Handler.handle ctx headers env url req
+end
