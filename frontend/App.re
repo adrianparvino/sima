@@ -166,9 +166,9 @@ module MainApp = {
       [|credential|],
     );
 
-    <div className="flex flex-col w-screen h-screen md:flex-row">
+    <div className="flex flex-col w-screen md:h-screen md:flex-row">
       <div
-        className="flex-1 flex flex-col h-full overflow-y-scroll items-center">
+        className="flex-1 flex flex-col h-full items-center md:overflow-y-scroll">
         <div className="text-6xl font-bold m-8">
           {React.string("Tasks")}
         </div>
@@ -183,7 +183,7 @@ module MainApp = {
         </div>
       </div>
       <div
-        className="bg-[#ced5d4] w-screen md:max-w-md flex flex-col p-8 space-y-8">
+        className="bg-[#ced5d4] flex flex-col p-8 space-y-8 w-screen md:max-w-md ">
         <Leaderboard />
         <Calendar tasks />
       </div>

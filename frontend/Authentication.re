@@ -59,18 +59,12 @@ module GoogleLogin = {
 let make = (~children: React.element) => {
   let (credential, setCredential) =
     React.useReducer((_, newValue) => newValue, "");
-  // let (reason, setReason) = React.useReducer((_, newValue) => newValue, "");
-
-  // Js.Console.log({
-  //   "credential": credential,
-  //   "reason": reason,
-  // });
 
   <Provider value=credential>
     {credential != ""
        ? children
        : <div
-           className="flex flex-col justify-center items-center h-full w-full">
+           className="flex flex-col justify-center items-center h-screen w-screen">
            <GoogleLogin
              onSuccess={credential => {setCredential(credential.credential)}}
              hosted_domain="up.edu.ph"
