@@ -183,7 +183,7 @@ module MainApp = {
         </div>
       </div>
       <div
-        className="bg-[#ced5d4] flex flex-col p-8 space-y-8 w-screen md:max-w-md ">
+        className="bg-[#ced5d4] flex flex-col space-y-8 w-screen md:max-w-md ">
         <Leaderboard />
         <Calendar tasks />
       </div>
