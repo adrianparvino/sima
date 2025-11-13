@@ -23,36 +23,62 @@ let scheduled (env : Cf_workers.Workers.Env.t) =
   in
   ()
 
-module Worker = Cf_workers.Workers.Make (Middlewares.Verified.Make (struct
-  let handle { Cf_workers.Ctx.ctx } _headers env url req =
-    let open Cf_workers.Promise_utils.Bind in
+module Worker = Cf_workers.Workers.Make (struct
+  module Next = Middlewares.Verified.Make (struct
+    type response = Cf_workers.Workers.Response.t
+
+    let handle { Cf_workers.Ctx.ctx } _headers env url req =
+      let open Cf_workers.Promise_utils.Bind in
+      let open Cf_workers.Workers.Request in
+      let verified = ctx Middlewares.Verified.Verified |> Option.get in
+      let path =
+        (URL.make url).pathname
+        |> Js.String.match_ ~regexp:[%re "/\\/([^/]+)/g"]
+        |> Option.get |> Array.map Option.get
+      in
+      let+ response =
+        match (path, req) with
+        | [| "/api" |], Get ->
+            let email =
+              verified |. Js.Dict.get "email" |> Option.get
+              |> Js.Json.decodeString |> Option.get
+            in
+            Task.Controller.list env email
+        | [| "/api"; "/scores" |], Get -> Score.Controller.list_scores env
+        | [| "/api"; task_id; "/finish" |], Post _ ->
+            let email =
+              verified |. Js.Dict.get "email" |> Option.get
+              |> Js.Json.decodeString |> Option.get
+            in
+            let task_id = task_id |> Js.String.slice ~start:1 in
+            Task.Controller.finish env email task_id
+        | _ -> failwith "Invalid path"
+      in
+      response |> Cf_workers.Workers.Response.create
+  end)
+
+  type _response = Cf_workers.Workers.Response.t
+
+  let handle ctx headers env url req =
     let open Cf_workers.Workers.Request in
-    let verified = ctx Middlewares.Verified.Verified |> Option.get in
     let path =
       (URL.make url).pathname
       |> Js.String.match_ ~regexp:[%re "/\\/([^/]+)/g"]
       |> Option.get |> Array.map Option.get
     in
-    let+ response =
-      match (path, req) with
-      | [| "/api" |], Get ->
-          let email =
-            verified |. Js.Dict.get "email" |> Option.get
-            |> Js.Json.decodeString |> Option.get
-          in
-          Task.Controller.list env email
-      | [| "/api"; "/scores" |], Get -> Score.Controller.list_scores env
-      | [| "/api"; task_id; "/finish" |], Post _ ->
-          let email =
-            verified |. Js.Dict.get "email" |> Option.get
-            |> Js.Json.decodeString |> Option.get
-          in
-          let task_id = task_id |> Js.String.slice ~start:1 in
-          Task.Controller.finish env email task_id
-      | _ -> failwith "Invalid path"
-    in
-    response |> Cf_workers.Workers.Response.create
-end))
+    match (path, req) with
+    | [| "/api"; "/login" |], Post { body } ->
+        let open Cf_workers.Promise_utils.Bind in
+        let+ body = body () in
+        let headers = Cf_workers.Headers.empty () in
+        let setCookie =
+          Cookie.serialize "token" body [%mel.obj { httpOnly = true }]
+        in
+        let options = Cf_workers.Workers.Response.makeOptions ~headers () in
+        let _ = Cf_workers.Headers.set "Set-Cookie" setCookie headers in
+        Cf_workers.Workers.Response.create ~options ""
+    | _ -> Next.handle ctx headers env url req
+end)
 
 let default =
   [%mel.obj

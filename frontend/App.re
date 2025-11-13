@@ -37,35 +37,27 @@ module Scores = {
 module Leaderboard = {
   [@react.component]
   let make = () => {
-    let credential = React.useContext(Authentication.Provider.themeContext);
-
     let (scores, setScores) =
       React.useReducer((_, newValue) => newValue, [||]);
 
     let fetchScores = () =>
-      if (credential != "") {
-        Js.Promise.(
-          Fetch.(
-            RequestInit.make(
-              ~method_=Get,
-              ~headers=
-                HeadersInit.make({
-                  "Content-Type": "application/json",
-                  "Authorization": "Bearer " ++ credential,
-                }),
-              (),
-            )
-            |> fetchWithInit(backendUrl ++ "/scores")
+      Js.Promise.(
+        Fetch.(
+          RequestInit.make(
+            ~method_=Get,
+            ~headers=HeadersInit.make({"Content-Type": "application/json"}),
+            (),
           )
-          |> then_(Fetch.Response.json)
-          |> then_(x => {
-               x |> Scores.of_json |> setScores;
-
-               resolve();
-             })
+          |> fetchWithInit(backendUrl ++ "/scores")
         )
-        |> ignore;
-      };
+        |> then_(Fetch.Response.json)
+        |> then_(x => {
+             x |> Scores.of_json |> setScores;
+
+             resolve();
+           })
+      )
+      |> ignore;
 
     React.useEffect0(() => {
       fetchScores();
@@ -101,37 +93,41 @@ module Leaderboard = {
 module MainApp = {
   [@react.component]
   let make = () => {
-    let credential = React.useContext(Authentication.Provider.themeContext);
-
+    let setUnauthenticated =
+      React.useContext(Authentication.Provider.setUnauthenticatedContext);
     let (tasks, setTasks) =
       React.useReducer((_, newValue) => Some(newValue), None);
 
     Js.Console.log(tasks);
 
     let fetchTasks = () =>
-      if (credential != "") {
-        Js.Promise.(
-          Fetch.(
-            RequestInit.make(
-              ~method_=Get,
-              ~headers=
-                HeadersInit.make({
-                  "Content-Type": "application/json",
-                  "Authorization": "Bearer " ++ credential,
-                }),
-              (),
-            )
-            |> fetchWithInit(backendUrl ++ "/")
+      Js.Promise.(
+        Fetch.(
+          RequestInit.make(
+            ~method_=Get,
+            ~headers=HeadersInit.make({"Content-Type": "application/json"}),
+            (),
           )
-          |> then_(Fetch.Response.json)
-          |> then_(x => {
-               x |> Tasks.of_json |> setTasks;
-
-               resolve();
-             })
+          |> fetchWithInit(backendUrl ++ "/")
         )
-        |> ignore;
-      };
+        |> then_(response =>
+             Fetch.Response.(
+               if (status(response) == 403) {
+                 setUnauthenticated(_ => true);
+
+                 resolve();
+               } else {
+                 json(response)
+                 |> then_(x => {
+                      x |> Tasks.of_json |> setTasks;
+
+                      resolve();
+                    });
+               }
+             )
+           )
+      )
+      |> ignore;
 
     let finish = task_id => {
       Js.Promise.(
@@ -139,11 +135,7 @@ module MainApp = {
           RequestInit.make(
             ~method_=Post,
             ~body=BodyInit.make("{}"),
-            ~headers=
-              HeadersInit.make({
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " ++ credential,
-              }),
+            ~headers=HeadersInit.make({"Content-Type": "application/json"}),
             (),
           )
           |> fetchWithInit(
@@ -158,13 +150,10 @@ module MainApp = {
       |> ignore;
     };
 
-    React.useEffect1(
-      () => {
-        fetchTasks();
-        None;
-      },
-      [|credential|],
-    );
+    React.useEffect0(() => {
+      fetchTasks();
+      None;
+    });
 
     <div className="flex flex-col w-screen md:h-screen md:flex-row">
       <div

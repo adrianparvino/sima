@@ -1,8 +1,12 @@
+[@mel.scope ("import", "meta", "env")]
+external backendUrl: string = "VITE_BACKEND_URL";
+
 module Provider = {
-  let themeContext = React.createContext("a");
+  let setUnauthenticatedContext =
+    React.createContext((_: bool => bool) => ());
 
   include React.Context;
-  let make = React.Context.provider(themeContext);
+  let make = React.Context.provider(setUnauthenticatedContext);
 };
 
 type successResponse = {credential: string};
@@ -57,16 +61,28 @@ module GoogleLogin = {
 
 [@react.component]
 let make = (~children: React.element) => {
-  let (credential, setCredential) =
-    React.useReducer((_, newValue) => newValue, "");
+  let (unauthenticated, setUnauthenticated) = React.useState(_ => false);
 
-  <Provider value=credential>
-    {credential != ""
+  <Provider value=setUnauthenticated>
+    {!unauthenticated
        ? children
        : <div
            className="flex flex-col justify-center items-center h-screen w-screen">
            <GoogleLogin
-             onSuccess={credential => {setCredential(credential.credential)}}
+             onSuccess={response =>
+               Js.Promise.(
+                 Fetch.(
+                   RequestInit.make(
+                     ~method_=Post,
+                     ~body=BodyInit.make(response.credential),
+                     (),
+                   )
+                   |> fetchWithInit(backendUrl ++ "/login")
+                 )
+                 |> then_(_ => setUnauthenticated(_ => false) |> resolve)
+                 |> ignore
+               )
+             }
              hosted_domain="up.edu.ph"
              auto_select=true
              use_fedcm_for_prompt=false
